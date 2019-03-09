@@ -1,5 +1,8 @@
 package com.sinri;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.util.ArrayList;
 
 public class QRCode {
@@ -152,6 +155,8 @@ public class QRCode {
     {
 
         QRModeEnum mode = QRUtil.getMode(data);
+
+        System.out.println("Mode: " + mode);
 
         QRCode qr = new QRCode();
         qr.setErrorCorrectLevel(errorCorrectLevel);
@@ -462,6 +467,37 @@ public class QRCode {
         }
     }
 
+
+    public RenderedImage createImage(int cellSize, Color backgroundColor, Color foregroundColor) {
+        BufferedImage bufferedImage = new BufferedImage(cellSize * (getModuleCount() + 2), cellSize * (getModuleCount() + 2), BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D g2d = bufferedImage.createGraphics();
+
+        // write the cells
+
+        g2d.setColor(backgroundColor);//Color.white
+        g2d.fillRect(0, 0, cellSize * (getModuleCount() + 2), cellSize * (getModuleCount() + 2));
+        //g2d.setColor(foregroundColor);//Color.black
+        //g2d.fillOval(0, 0, width, height);
+
+        for (int i = 0; i < getModuleCount(); i++) {
+            for (int j = 0; j < getModuleCount(); j++) {
+                if (isDark(i, j)) {
+                    g2d.setColor(foregroundColor);
+                    g2d.fillRect(cellSize * (1 + i), cellSize * (1 + j), cellSize, cellSize);
+                }
+            }
+        }
+
+        g2d.dispose();
+        return bufferedImage;
+
+//        File file = new File("newimage.png");
+//        ImageIO.write(rendImage, "png", file);
+//
+//        file = new File("newimage.jpg");
+//        ImageIO.write(rendImage, "jpg", file);
+    }
 
 //    /**
 //     * added $fg (foreground), $bg (background), and $bgtrans (use transparent bg) parameters

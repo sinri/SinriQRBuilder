@@ -1,5 +1,6 @@
 package com.sinri;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
@@ -277,8 +278,8 @@ class QRUtil {
     private static boolean isNumber(String s)
     {
         for (int i = 0; i < s.length(); i++) {
-            int c = ordAsPHP(s.charAt(i));
-            if (!(toCharCode("0") <= c && c <= toCharCode("9"))) {
+            char c = s.charAt(i);
+            if (!('0' <= c && c <= '9')) {
                 return false;
             }
         }
@@ -288,12 +289,8 @@ class QRUtil {
     private static boolean isAlphaNum(String s)
     {
         for (int i = 0; i < s.length(); i++) {
-            int c = ordAsPHP(s.charAt(i));
-            if (
-                    !(toCharCode("0") <= c && c <= toCharCode("9"))
-                    && !(toCharCode("A") <= c && c <= toCharCode("Z"))
-                    && !s.substring(i,i+1).contains(" $%*+-./:")
-            ) {
+            char c = s.charAt(i);
+            if (!('0' <= c && c <= '9') && !('A' <= c && c <= 'Z') && " $%*+-./:".indexOf(c) == -1) {
                 return false;
             }
         }
@@ -302,17 +299,29 @@ class QRUtil {
 
     private static boolean isKanji(String s)
     {
-        int i = 0;
-        while (i + 1 < s.length()) {
-            int c = ((0xff & ordAsPHP(s.charAt(i))) << 8) | (0xff & ordAsPHP(s.charAt(i + 1)));
+        try {
+            byte[] data = s.getBytes("SJIS");
+            int i = 0;
 
-            if (!(0x8140 <= c && c <= 0x9FFC) && !(0xE040 <= c && c <= 0xEBBF)) {
+            while (i + 1 < data.length) {
+
+                int c = ((0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+                if (!(0x8140 <= c && c <= 0x9FFC) && !(0xE040 <= c && c <= 0xEBBF)) {
+                    return false;
+                }
+
+                i += 2;
+            }
+
+            if (i < data.length) {
                 return false;
             }
 
-            i += 2;
+            return true;
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e.getMessage());
         }
-        return i >= s.length();
     }
 
     static int toCharCode(String s)
